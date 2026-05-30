@@ -40,4 +40,19 @@ public class LivroExemplarController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    // 4. DELETE /exemplares/{id} (Remove um exemplar do banco de dados pelo ID)
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        try {
+                // Chama o método do Service para deletar
+            service.deletarLivro(id);
+                
+                // Retorna o status 204 No Content (padrão HTTP para exclusão bem-sucedida sem corpo de resposta)
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+                // Se o Service lançar um erro (porque o ID não existe), retorna 404 Not Found
+            return ResponseEntity.notFound().build();
+            }
+        }
 }
