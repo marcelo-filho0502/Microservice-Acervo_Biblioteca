@@ -10,35 +10,26 @@ public class LivroExemplar {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "nome_livro")
-    private String nomeLivro; 
-
-    // Novo campo para guardar a quantidade
-    private Integer quantidade;
+    // Guarda apenas o ID do livro que pertence ao Microsserviço de Catálogo
+    private Long idLivro; 
 
     @Enumerated(EnumType.STRING)
     private StatusExemplar status;
 
-    // Construtor vazio exigido pelo JPA
+    // Construtores
     public LivroExemplar() {}
 
-    // Construtor com todos os campos
-    public LivroExemplar(String nomeLivro, Integer quantidade, StatusExemplar status) {
-        this.nomeLivro = nomeLivro;
-        this.quantidade = quantidade;
+    public LivroExemplar(Long idLivro, StatusExemplar status) {
+        this.idLivro = idLivro;
         this.status = status;
     }
 
-    // --- Getters e Setters ---
-
+    // Getters e Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public String getNomeLivro() { return nomeLivro; }
-    public void setNomeLivro(String nomeLivro) { this.nomeLivro = nomeLivro; }
-
-    public Integer getQuantidade() { return quantidade; }
-    public void setQuantidade(Integer quantidade) { this.quantidade = quantidade; }
+    public Long getIdLivro() { return idLivro; }
+    public void setIdLivro(Long idLivro) { this.idLivro = idLivro; }
 
     public StatusExemplar getStatus() { return status; }
     public void setStatus(StatusExemplar status) { this.status = status; }
