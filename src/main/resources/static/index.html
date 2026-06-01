@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Acervo da Biblioteca</title>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+    <h2>Lista de Obras no Acervo</h2>
+    <table border="1" id="tabela-livros">
+        <thead>
+            <tr><th>Título</th><th>Autor</th><th>Status</th></tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        async function carregarTabela() {
+            // Busca a lista de livros no Catálogo (8081)
+            const resLivros = await fetch('http://localhost:8081/livros');
+            const livros = await resLivros.json();
+            
+            const tbody = document.querySelector('#tabela-livros tbody');
+            tbody.innerHTML = '';
+
+            for (let l of livros) {
+                // Busca o status no Acervo (8080)
+                const resAcervo = await fetch(`http://localhost:8080/exemplares/por-livro/${l.id}`);
+                const exemplares = await resAcervo.json();
+                const status = (exemplares.length > 0) ? exemplares[0].status : "Indisponível";
+
+                tbody.innerHTML += `<tr><td>${l.titulo}</td><td>${l.autor}</td><td>${status}</td></tr>`;
+            }
+        }
+        carregarTabela();
+    </script>
+</body>
+</html>
