@@ -5,11 +5,15 @@ import com.biblioteca.acervo.model.StatusExemplar;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List; // Não se esqueça de importar a List
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface LivroExemplarRepository extends JpaRepository<LivroExemplar, Long> {
+
     
-    // Método mágico do Spring para encontrar livros por status
+    Optional<LivroExemplar> findByIdLivro(Long idLivro);
+
+    List<LivroExemplar> findAllByIdLivro(Long idLivro);
     List<LivroExemplar> findByStatus(StatusExemplar status);
 }

@@ -1,39 +1,175 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>Acervo da Biblioteca</title>
-    <link rel="stylesheet" href="style.css">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acervo — Biblioteca</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h2>Lista de Obras no Acervo</h2>
-    <table border="1" id="tabela-livros">
+
+  <header>
+    <div class="logo-mark">B</div>
+    <div class="logo-text">
+      <strong>Biblioteca</strong>
+      Sistema de Gestão
+    </div>
+    <nav class="header-nav">
+      <a href="http://localhost:8081/cadastro.html" class="nav-link">Cadastrar Livro</a>
+      <a href="index.html" class="nav-link active">Ver Acervo</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="page-hero">
+      <p class="eyebrow">Acervo · Visão Geral</p>
+      <h1>Obras Disponíveis</h1>
+      <p>Consulte o acervo completo, quantidades e status de cada exemplar.</p>
+    </div>
+
+    <!-- Cards de estatísticas -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-label">Total de Títulos</div>
+        <div class="stat-value gold" id="stat-titulos">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total de Exemplares</div>
+        <div class="stat-value" id="stat-exemplares">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Disponíveis Agora</div>
+        <div class="stat-value" id="stat-disponiveis">—</div>
+      </div>
+    </div>
+
+    <!-- Tabela principal -->
+    <div class="section-header">
+      <h2>Acervo Completo</h2>
+      <button class="btn btn-ghost" onclick="carregarAcervo()" style="font-size:13px; padding:8px 16px;">
+        ↻ Atualizar
+      </button>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
         <thead>
-            <tr><th>Título</th><th>Autor</th><th>Status</th></tr>
+          <tr>
+            <th>Título</th>
+            <th>Autor</th>
+            <th>Categoria</th>
+            <th>Exemplares</th>
+            <th>Status</th>
+          </tr>
         </thead>
-        <tbody></tbody>
-    </table>
+        <tbody id="tbody-acervo">
+          <tr class="skeleton-row">
+            <td><div class="skeleton" style="width:160px"></div></td>
+            <td><div class="skeleton" style="width:120px"></div></td>
+            <td><div class="skeleton" style="width:100px"></div></td>
+            <td><div class="skeleton" style="width:28px"></div></td>
+            <td><div class="skeleton" style="width:90px"></div></td>
+          </tr>
+          <tr class="skeleton-row">
+            <td><div class="skeleton" style="width:140px"></div></td>
+            <td><div class="skeleton" style="width:110px"></div></td>
+            <td><div class="skeleton" style="width:80px"></div></td>
+            <td><div class="skeleton" style="width:28px"></div></td>
+            <td><div class="skeleton" style="width:90px"></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
 
-    <script>
-        async function carregarTabela() {
-            // Busca a lista de livros no Catálogo (8081)
-            const resLivros = await fetch('http://localhost:8081/livros');
-            const livros = await resLivros.json();
-            
-            const tbody = document.querySelector('#tabela-livros tbody');
-            tbody.innerHTML = '';
+  <script>
+    function badgeStatus(status) {
+      const map = {
+        'DISPONIVEL':  ['badge-disponivel',  'Disponível'],
+        'EMPRESTADO':  ['badge-emprestado',  'Emprestado'],
+        'DANIFICADO':  ['badge-danificado',  'Danificado'],
+      };
+      const [cls, label] = map[status] || ['badge-indisponivel', 'Indisponível'];
+      return `<span class="badge ${cls}">${label}</span>`;
+    }
 
-            for (let l of livros) {
-                // Busca o status no Acervo (8080)
-                const resAcervo = await fetch(`http://localhost:8080/exemplares/por-livro/${l.id}`);
-                const exemplares = await resAcervo.json();
-                const status = (exemplares.length > 0) ? exemplares[0].status : "Indisponível";
+    async function carregarAcervo() {
+      const tbody = document.getElementById('tbody-acervo');
 
-                tbody.innerHTML += `<tr><td>${l.titulo}</td><td>${l.autor}</td><td>${status}</td></tr>`;
-            }
+      // Skeleton de loading
+      tbody.innerHTML = [1,2,3].map(() => `
+        <tr class="skeleton-row">
+          <td><div class="skeleton" style="width:160px"></div></td>
+          <td><div class="skeleton" style="width:120px"></div></td>
+          <td><div class="skeleton" style="width:100px"></div></td>
+          <td><div class="skeleton" style="width:28px"></div></td>
+          <td><div class="skeleton" style="width:90px"></div></td>
+        </tr>`).join('');
+
+      try {
+        // Busca livros no Catálogo e exemplares no Acervo em paralelo
+        const [resLivros, resExemplares] = await Promise.all([
+          fetch('http://localhost:8081/livros'),
+          fetch('http://localhost:8080/exemplares')
+        ]);
+
+        const livros     = await resLivros.json();
+        const exemplares = await resExemplares.json();
+
+        // Monta mapa idLivro → exemplar
+        const mapaExemplar = {};
+        exemplares.forEach(e => { mapaExemplar[e.idLivro] = e; });
+
+        // Atualiza stats
+        const totalExemplares  = exemplares.reduce((s, e) => s + (e.quantidade || 0), 0);
+        const totalDisponiveis = exemplares
+          .filter(e => e.status === 'DISPONIVEL')
+          .reduce((s, e) => s + (e.quantidade || 0), 0);
+
+        document.getElementById('stat-titulos').textContent     = livros.length;
+        document.getElementById('stat-exemplares').textContent  = totalExemplares;
+        document.getElementById('stat-disponiveis').textContent = totalDisponiveis;
+
+        if (livros.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5">
+                <div class="empty-state">
+                  <div class="icon">📚</div>
+                  <p>Nenhum livro no acervo ainda. Cadastre um livro no Catálogo.</p>
+                </div>
+              </td>
+            </tr>`;
+          return;
         }
-        carregarTabela();
-    </script>
+
+        tbody.innerHTML = livros.map(l => {
+          const ex = mapaExemplar[l.id];
+          const qtd    = ex ? `<span class="qty">${ex.quantidade}</span>` : `<span class="qty" style="color:var(--text-muted)">0</span>`;
+          const status = ex ? badgeStatus(ex.status) : badgeStatus(null);
+          return `
+            <tr>
+              <td style="font-weight:500;">${l.titulo}</td>
+              <td>${l.autor}</td>
+              <td style="color:var(--text-muted);">${l.categoria}</td>
+              <td>${qtd}</td>
+              <td>${status}</td>
+            </tr>`;
+        }).join('');
+
+      } catch (e) {
+        document.getElementById('stat-titulos').textContent    = '—';
+        document.getElementById('stat-exemplares').textContent = '—';
+        document.getElementById('stat-disponiveis').textContent= '—';
+        tbody.innerHTML = `
+          <tr><td colspan="5" style="color:var(--red); padding:24px 20px; font-size:14px;">
+            Erro ao carregar o acervo. Verifique se os servidores estão rodando.
+          </td></tr>`;
+      }
+    }
+
+    carregarAcervo();
+  </script>
+
 </body>
 </html>

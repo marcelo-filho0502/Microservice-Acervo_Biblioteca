@@ -10,21 +10,21 @@ public class LivroExemplar {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Guarda apenas o ID do livro que pertence ao Microsserviço de Catálogo
-    private Long idLivro; 
+    private Long idLivro;
 
     @Enumerated(EnumType.STRING)
     private StatusExemplar status;
 
-    // Construtores
+    private Integer quantidade;
+
     public LivroExemplar() {}
 
-    public LivroExemplar(Long idLivro, StatusExemplar status) {
+    public LivroExemplar(Long idLivro, StatusExemplar status, Integer quantidade) {
         this.idLivro = idLivro;
         this.status = status;
+        this.quantidade = quantidade;
     }
 
-    // Getters e Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -33,4 +33,7 @@ public class LivroExemplar {
 
     public StatusExemplar getStatus() { return status; }
     public void setStatus(StatusExemplar status) { this.status = status; }
+
+    public Integer getQuantidade() { return quantidade; }
+    public void setQuantidade(Integer quantidade) { this.quantidade = quantidade; }
 }
