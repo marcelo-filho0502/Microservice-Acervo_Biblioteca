@@ -15,7 +15,7 @@
       Sistema de Gestão
     </div>
     <nav class="header-nav">
-      <a href="http://localhost:8081/cadastro.html" class="nav-link">Cadastrar Livro</a>
+      <a href="http://localhost:8089/cadastro.html" class="nav-link">Cadastrar Livro</a>
       <a href="index.html" class="nav-link active">Ver Acervo</a>
     </nav>
   </header>
@@ -109,8 +109,8 @@
       try {
         // Busca livros no Catálogo e exemplares no Acervo em paralelo
         const [resLivros, resExemplares] = await Promise.all([
-          fetch('http://localhost:8081/livros'),
-          fetch('http://localhost:8080/exemplares')
+          fetch('http://localhost:8089/livros'),
+          fetch('http://localhost:8087/exemplares')
         ]);
 
         const livros     = await resLivros.json();
